@@ -4,14 +4,14 @@
 
   vars:
     sites:
-      - ip: 192.168.0.1
-        token: 1-MvszzYoBpeTCkFKQSHRlirrypcjdtCVcl058fZRE57YdPhRPorytCruzgIxzkWAw
+      - ip: 192.168.178.230
+        token: 2-OfPTEZBRucTmQSmTpWEPYxBCsr7aYQ6FU5evpUMoQf2sJFTZCGUFL2Rau31uj9w4
         validate_certs: false
-      - ip: 192.168.0.2
-        token: 1-uskZv5aFL2siXW9dlVpAINQWeqZNo1xpqDIXXm4yvtM2V8CsjxK9hINydxmye9vH
-        validate_certs: false
+#      - ip: 192.168.0.2
+#        token: 1-uskZv5aFL2siXW9dlVpAINQWeqZNo1xpqDIXXm4yvtM2V8CsjxK9hINydxmye9vH
+#        validate_certs: false
 
   tasks:
     - name: update-truenas-api
-      include_tasks: task.yml
+      include_tasks: truenas-tasks.yaml
       loop: '{{ sites }}'
