@@ -1,7 +1,7 @@
 - name: Checks if there is an update available from update server.
   uri:
     method: POST
-    url: https://{{ item.ip }}/api/v2.0/update/check_available
+    url: http://{{ item.ip }}/api/v2.0/update/check_available
     return_content: true
     validate_certs: '{{ item.validate_certs }}'
     headers:
