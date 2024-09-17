@@ -7,8 +7,8 @@
     - name: Start ei23 du
       ansible.builtin.shell:
         cmd: |
-          pwd
-          ei23.sh du
+          su - pi
+          ei23 du
         executable: /bin/bash
       changed_when: false
       check_mode: false
