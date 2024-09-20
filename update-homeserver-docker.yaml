@@ -5,8 +5,7 @@
   tasks:
      - name: ei23 du ausführen
 #       command: sh /home/pi/ei23.sh -du
-       script:
-         free_form: /home/pi/ei23.sh -du
+         script: /home/pi/ei23.sh -du
          remote_src: yes
 #
 #
