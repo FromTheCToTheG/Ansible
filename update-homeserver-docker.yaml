@@ -2,7 +2,6 @@
 - name: Update Homeserver Docker
   hosts: [homeserver]
   remote_user: pi
-  sudo: no
   tasks:
      - name: ei23 du ausführen
        command: sh /home/pi/ei23.sh -du
