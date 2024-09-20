@@ -3,10 +3,15 @@
   hosts: [homeserver]
   remote_user: pi
   tasks:
-     - name: ei23 du ausführen
-#       command: sh /home/pi/ei23.sh -du
-       script: /home/pi/ei23.sh -du
-       remote_src: yes
+    - name: Start ei23 du
+      ansible.builtin.shell:
+        cmd: |
+#          su - pi
+          ei23 du
+        executable: /bin/bash
+      changed_when: false
+      check_mode: false
+#      register: disk_usage
 #
 #
 #
