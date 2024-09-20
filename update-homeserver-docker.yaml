@@ -1,15 +1,27 @@
 ---
 - name: Update Homeserver Docker
-#  hosts: "{{ my_hosts | d([]) }}"
   hosts: [homeserver]
-
+  remote_user: pi
+  sudo: no
   tasks:
-    - name: Start ei23 du
-      ansible.builtin.shell:
-        cmd: |
-          su - pi
-          ei23 du
-        executable: /bin/bash
-      changed_when: false
-      check_mode: false
-#      register: disk_usage
+     - name: ei23 du ausführen
+       command: sh /home/pi/ei23.sh -du
+#
+#
+#
+# Alte Version (funktioniert so nicht)
+#---
+#- name: Update Homeserver Docker
+##  hosts: "{{ my_hosts | d([]) }}"
+#  hosts: [homeserver]
+#
+#  tasks:
+#    - name: Start ei23 du
+#      ansible.builtin.shell:
+#        cmd: |
+#          su - pi
+#          ei23 du
+#        executable: /bin/bash
+#      changed_when: false
+#      check_mode: false
+##      register: disk_usage
