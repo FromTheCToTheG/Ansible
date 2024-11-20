@@ -5,7 +5,7 @@
   tasks:
     - name: Start ei23 du
       ansible.builtin.shell:
-        cmd: /home/pi/ei23 du
+        cmd: /home/pi/ei23.sh du
         executable: /bin/bash
       changed_when: false
 
