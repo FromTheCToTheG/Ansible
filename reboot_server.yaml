@@ -1,0 +1,5 @@
+---
+ - name: Playbook to reboot a server
+   hosts: all
+   become: true
+   ansible.builtin.reboot:
