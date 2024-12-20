@@ -1,0 +1,28 @@
+---
+- name: Restart a specified Docker container
+  hosts: all
+  gather_facts: false
+  vars:
+    container_name: ""
+  tasks:
+    - name: Ensure container_name is provided
+      fail:
+        msg: "You must provide a container_name variable."
+      when: container_name == ""
+
+    - name: Check if the container is running
+      docker_container_info:
+        name: "{{ container_name }}"
+      register: container_info
+      ignore_errors: true
+
+    - name: Stop the container if it is running
+      docker_container:
+        name: "{{ container_name }}"
+        state: stopped
+      when: container_info.container is defined and container_info.container.state == 'running'
+
+    - name: Start the container
+      docker_container:
+        name: "{{ container_name }}"
+        state: started
