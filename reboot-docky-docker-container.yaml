@@ -1,0 +1,19 @@
+- name: Restart the mqttexplorer container on the remote host
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check if the container is running
+      docker_container_info:
+        name: mqttexplorer
+      register: container_info
+
+    - name: Stop the container if it is running
+      docker_container:
+        name: mqttexplorer
+        state: stopped
+      when: container_info.container.state == 'running'
+
+    - name: Start the container
+      docker_container:
+        name: mqttexplorer
+        state: started
