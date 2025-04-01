@@ -1,0 +1,27 @@
+---
+- name: Update Docker containers only if new image is available
+  hosts: all
+  gather_facts: false
+  become: true
+
+  tasks:
+    - name: List all running Docker containers
+      community.docker.docker_container_info:
+        containers: all
+      register: running_containers
+
+    - name: Check for updated images
+      shell: docker images --digests --filter=reference="{{ item.Image }}" | grep latest
+      register: image_info
+      loop: "{{ running_containers.containers }}"
+      when: item.Image.endswith(":latest")
+
+    - name: Update container if image is newer
+      community.docker.docker_container:
+        name: "{{ item.Name }}"
+        image: "{{ item.Image }}"
+        pull: yes
+        state: started
+        restart_policy: always
+      loop: "{{ running_containers.containers }}"
+      when: image_info.stdout_lines | length > 0
