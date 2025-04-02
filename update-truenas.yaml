@@ -12,6 +12,24 @@
 #        validate_certs: false
 
   tasks:
-    - name: update-truenas-api
-      include_tasks: truenas-tasks.yaml
-      loop: '{{ sites }}'
+    - name: Check for TrueNAS updates
+      uri:
+        url: "https://{{ item.ip }}/api/v2.0/system/update/check"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ item.token }}"
+        validate_certs: "{{ item.validate_certs }}"
+      register: update_check_response
+      loop: "{{ sites }}"
+
+    - name: Apply TrueNAS updates if available
+      uri:
+        url: "https://{{ item.ip }}/api/v2.0/system/update/apply"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ item.token }}"
+        validate_certs: "{{ item.validate_certs }}"
+      when: update_check_response.results[item_index].json['available']
+      loop_control:
+        index_var: item_index
+      loop: "{{ sites }}"
