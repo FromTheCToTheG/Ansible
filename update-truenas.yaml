@@ -6,7 +6,7 @@
     sites:
       - ip: 192.168.178.230
         token: 5-VW2fLpM7Qavdjt4SrS6PCrDkXo0o329BaFcUdKkW6YK0LdqBg6sW63vcC0MaF00V
-        validate_certs: false
+        validate_certs: no
 #      - ip: 192.168.0.2
 #        token: 1-uskZv5aFL2siXW9dlVpAINQWeqZNo1xpqDIXXm4yvtM2V8CsjxK9hINydxmye9vH
 #        validate_certs: false
