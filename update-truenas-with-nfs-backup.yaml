@@ -3,6 +3,8 @@
   hosts: localhost
   gather_facts: false
   become: true  # nötig für das Mounten der NFS-Freigabe
+  environment:
+    ANSIBLE_HOST_KEY_CHECKING: "False"
 
   vars:
     ansible_user: "root"
