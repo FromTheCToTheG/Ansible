@@ -17,6 +17,7 @@
         method: POST
         headers:
           Authorization: "Bearer {{ truenas_api_token }}"
+        validate_certs: no
         body:
           command: "mkdir -p {{ nfs_mount_point }} && mount -t nfs {{ nfs_share }} {{ nfs_mount_point }}"
         body_format: json
@@ -29,6 +30,7 @@
         method: POST
         headers:
           Authorization: "Bearer {{ truenas_api_token }}"
+        validate_certs: no
         body_format: json
         return_content: true
       register: config_backup
@@ -39,6 +41,7 @@
         method: POST
         headers:
           Authorization: "Bearer {{ truenas_api_token }}"
+        validate_certs: no
         body:
           command: "echo '{{ config_backup.content | b64encode }}' | base64 -d > {{ nfs_mount_point }}/{{ backup_filename }}"
         body_format: json
@@ -50,6 +53,7 @@
         method: POST
         headers:
           Authorization: "Bearer {{ truenas_api_token }}"
+        validate_certs: no
         body:
           command: "umount {{ nfs_mount_point }} && rmdir {{ nfs_mount_point }}"
         body_format: json
@@ -61,6 +65,7 @@
         method: POST
         headers:
           Authorization: "Bearer {{ truenas_api_token }}"
+        validate_certs: no
         body_format: json
         return_content: yes
       register: update_check
@@ -76,6 +81,7 @@
         method: POST
         headers:
           Authorization: "Bearer {{ truenas_api_token }}"
+        validate_certs: no
         body_format: json
         status_code: 200,202
       register: update_result
@@ -87,6 +93,7 @@
         method: POST
         headers:
           Authorization: "Bearer {{ truenas_api_token }}"
+        validate_certs: no
         status_code: 200,202
 
     - name: Warte auf Erreichbarkeit nach Reboot
