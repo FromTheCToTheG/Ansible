@@ -14,7 +14,7 @@
   tasks:
     - name: Check for TrueNAS updates
       uri:
-        url: "https://{{ item.ip }}/api/v2.0/system/update/check"
+        url: "https://{{ item.ip }}/api/v2.0/system/update/check_available"
         method: POST
         headers:
           Authorization: "Bearer {{ item.token }}"
