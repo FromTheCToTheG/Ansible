@@ -9,20 +9,22 @@
   tasks:
     - name: Check for TrueNAS updates
       uri:
-        url: "https://{{ siteip }}/api/v2.0/system/update/check_available"
+        url: "https://{{ siteip }}/api/v2.0/update/check_available"  # Korrigierter Pfad
         method: POST
         headers:
           Authorization: "Bearer {{ token }}"
         validate_certs: no
-      register: update_check_response
+      register: update_check
 
-    - name: Apply TrueNAS updates if available
+    - name: Debug output
+      debug:
+        var: update_check
+
+    - name: Apply updates if available
+      when: update_check.json.status == "AVAILABLE"
       uri:
-        url: "https://{{ siteip }}/api/v2.0/system/update/apply"
+        url: "https://{{ siteip }}/api/v2.0/update/update"  # Korrigierter Pfad
         method: POST
         headers:
           Authorization: "Bearer {{ token }}"
         validate_certs: no
-      when: update_check_response.results[item_index].json['available']
-      loop_control:
-        index_var: item_index
