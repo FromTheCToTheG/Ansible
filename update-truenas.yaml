@@ -3,33 +3,26 @@
   gather_facts: false
 
   vars:
-    sites:
-      - ip: 192.168.178.230
-        token: 5-VW2fLpM7Qavdjt4SrS6PCrDkXo0o329BaFcUdKkW6YK0LdqBg6sW63vcC0MaF00V
-        validate_certs: no
-#      - ip: 192.168.0.2
-#        token: 1-uskZv5aFL2siXW9dlVpAINQWeqZNo1xpqDIXXm4yvtM2V8CsjxK9hINydxmye9vH
-#        validate_certs: false
+    siteip: "192.168.178.230"
+    token: "5-VW2fLpM7Qavdjt4SrS6PCrDkXo0o329BaFcUdKkW6YK0LdqBg6sW63vcC0MaF00V"
 
   tasks:
     - name: Check for TrueNAS updates
       uri:
-        url: "https://{{ item.ip }}/api/v2.0/system/update/check_available"
+        url: "https://{{ siteip }}/api/v2.0/system/update/check_available"
         method: POST
         headers:
-          Authorization: "Bearer {{ item.token }}"
-        validate_certs: "{{ item.validate_certs }}"
+          Authorization: "Bearer {{ token }}"
+        validate_certs: no
       register: update_check_response
-      loop: "{{ sites }}"
 
     - name: Apply TrueNAS updates if available
       uri:
-        url: "https://{{ item.ip }}/api/v2.0/system/update/apply"
+        url: "https://{{ siteip }}/api/v2.0/system/update/apply"
         method: POST
         headers:
-          Authorization: "Bearer {{ item.token }}"
-        validate_certs: "{{ item.validate_certs }}"
+          Authorization: "Bearer {{ token }}"
+        validate_certs: no
       when: update_check_response.results[item_index].json['available']
       loop_control:
         index_var: item_index
-      loop: "{{ sites }}"
