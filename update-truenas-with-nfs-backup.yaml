@@ -2,42 +2,34 @@
 - name: TrueNAS SCALE Backup + Update mit NFS-Upload
   hosts: localhost
   gather_facts: false
-  become: true  # erforderlich für das Mounten der NFS-Freigabe
+  become: true  # nötig für NFS-Mounts
 
   vars:
     truenas_host: "https://192.168.178.230"
     truenas_api_token: "5-VW2fLpM7Qavdjt4SrS6PCrDkXo0o329BaFcUdKkW6YK0LdqBg6sW63vcC0MaF00V"
-    backup_filename: "truenas_config_{{ lookup('pipe','date +%F') }}.db"
+    backup_filename: "truenas_config_{{ lookup('pipe','date +%F_%H-%M-%S') }}.db"
     nfs_server: "192.168.178.233"
     nfs_share: "/TrueNAS_Backups"
     nfs_mountpoint: "/mnt/nfs_backup"
 
   tasks:
 
-    - name: Erstelle lokales Backup-Verzeichnis falls nicht vorhanden
+    - name: Erstelle lokales Backup-Verzeichnis
       file:
         path: "./truenas_backups"
         state: directory
         mode: '0755'
 
-    - name: Lade TrueNAS-Konfigurationsbackup über API herunter
-      uri:
-        url: "{{ truenas_host }}/api/v2.0/system/config/save"
-        method: POST
+    - name: Lade TrueNAS-Konfigurationsbackup herunter (per API Download)
+      get_url:
+        url: "{{ truenas_host }}/api/v2.0/system/config/save?download=True"
         headers:
           Authorization: "Bearer {{ truenas_api_token }}"
-        return_content: yes
-        status_code: 200
-        validate_certs: no
-      register: config_backup
-
-    - name: Speichere Backup lokal auf Ansible-Host
-      copy:
-        content: "{{ config_backup.content }}"
         dest: "./truenas_backups/{{ backup_filename }}"
         mode: '0600'
+        validate_certs: no
 
-    - name: Erstelle lokalen Mountpunkt für NFS
+    - name: Erstelle lokalen NFS-Mountpunkt
       file:
         path: "{{ nfs_mountpoint }}"
         state: directory
@@ -62,12 +54,12 @@
         path: "{{ nfs_mountpoint }}"
         state: unmounted
 
-    - name: Entferne lokalen Mountpunkt
+    - name: Entferne lokalen NFS-Mountpunkt
       file:
         path: "{{ nfs_mountpoint }}"
         state: absent
 
-    - name: Prüfe, ob Updates verfügbar sind
+    - name: Prüfe auf verfügbare Updates
       uri:
         url: "{{ truenas_host }}/api/v2.0/update/check_available"
         method: POST
@@ -78,11 +70,11 @@
         validate_certs: no
       register: update_check
 
-    - name: Zeige Update-Status an
+    - name: Zeige Update-Status
       debug:
         msg: "Update-Status: {{ update_check.json.status }}"
 
-    - name: Führe Update durch, wenn verfügbar
+    - name: Starte Update falls verfügbar
       when: update_check.json.status == "AVAILABLE"
       uri:
         url: "{{ truenas_host }}/api/v2.0/update/update"
@@ -90,24 +82,23 @@
         headers:
           Authorization: "Bearer {{ truenas_api_token }}"
         body_format: json
-        validate_certs: no
         status_code: 200,202
-      register: update_result
+        validate_certs: no
 
-    - name: Starte TrueNAS neu, wenn Update erfolgt ist
+    - name: Starte TrueNAS neu nach Update
       when: update_check.json.status == "AVAILABLE"
       uri:
         url: "{{ truenas_host }}/api/v2.0/system/reboot"
         method: POST
         headers:
           Authorization: "Bearer {{ truenas_api_token }}"
-        validate_certs: no
         status_code: 200,202
+        validate_certs: no
 
-    - name: Warte, bis TrueNAS nach Neustart wieder erreichbar ist
+    - name: Warte bis TrueNAS wieder erreichbar ist
       when: update_check.json.status == "AVAILABLE"
       wait_for:
         host: "{{ truenas_host | urlsplit('hostname') }}"
         port: 443
-        delay: 20
+        delay: 30
         timeout: 300
