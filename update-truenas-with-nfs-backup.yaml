@@ -5,6 +5,7 @@
   become: true  # nötig für das Mounten der NFS-Freigabe
 
   vars:
+    ansible_user: "root"
     truenas_host: "192.168.178.230"
     truenas_user: "root"  # TrueNAS Benutzer, der SSH-Zugang hat
     truenas_ssh_key: "/root/.ssh/id_rsa_truenas"  # Pfad zu deinem privaten SSH-Schlüssel
