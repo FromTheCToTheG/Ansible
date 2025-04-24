@@ -4,7 +4,7 @@
   gather_facts: false
   vars:
     truenas_host: "https://192.168.178.230"
-    truenas_api_token: "YOUR_API_TOKEN_HERE"
+    truenas_api_token: "2-qaLp4bIcQxEksHH0HYFIdotgvBl9og0FJREad4iCgfrT5i2maoZ7Stel8AHX8F9E"
     nfs_share: "192.168.178.233:/TrueNAS_Backups"
     nfs_mount_point: "/mnt/nfs_backup"
     backup_filename: "truenas_config_{{ lookup('pipe','date +%F') }}.db"
