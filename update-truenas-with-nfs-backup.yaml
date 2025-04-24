@@ -7,7 +7,7 @@
   vars:
     truenas_host: "192.168.178.230"
     truenas_user: "root"  # TrueNAS Benutzer, der SSH-Zugang hat
-    truenas_ssh_key: "~/.ssh/id_rsa_truenas"  # Pfad zu deinem privaten SSH-Schlüssel
+    truenas_ssh_key: "/root/.ssh/id_rsa_truenas"  # Pfad zu deinem privaten SSH-Schlüssel
     truenas_api_token: "5-VW2fLpM7Qavdjt4SrS6PCrDkXo0o329BaFcUdKkW6YK0LdqBg6sW63vcC0MaF00V"
     backup_filename: "truenas_config_{{ lookup('pipe','date +%F_%H-%M-%S') }}.db"
     nfs_server: "192.168.178.233"
