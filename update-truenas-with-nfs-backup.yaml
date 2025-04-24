@@ -1,0 +1,98 @@
+---
+- name: TrueNAS SCALE Update + Backup to NFS via API
+  hosts: localhost
+  gather_facts: false
+  vars:
+    truenas_host: "https://192.168.178.230"
+    truenas_api_token: "YOUR_API_TOKEN_HERE"
+    nfs_share: "192.168.178.233:/TrueNAS_Backups"
+    nfs_mount_point: "/mnt/nfs_backup"
+    backup_filename: "truenas_config_{{ lookup('pipe','date +%F') }}.db"
+
+  tasks:
+
+    - name: Mount NFS share on TrueNAS
+      uri:
+        url: "{{ truenas_host }}/api/v2.0/system/advanced/exec"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ truenas_api_token }}"
+        body:
+          command: "mkdir -p {{ nfs_mount_point }} && mount -t nfs {{ nfs_share }} {{ nfs_mount_point }}"
+        body_format: json
+        status_code: 200,202
+      register: mount_result
+
+    - name: Save system config backup to NFS share
+      uri:
+        url: "{{ truenas_host }}/api/v2.0/system/config/save"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ truenas_api_token }}"
+        body_format: json
+        return_content: true
+      register: config_backup
+
+    - name: Write backup file to NFS share on TrueNAS
+      uri:
+        url: "{{ truenas_host }}/api/v2.0/system/advanced/exec"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ truenas_api_token }}"
+        body:
+          command: "echo '{{ config_backup.content | b64encode }}' | base64 -d > {{ nfs_mount_point }}/{{ backup_filename }}"
+        body_format: json
+        status_code: 200,202
+
+    - name: Unmount NFS share (optional)
+      uri:
+        url: "{{ truenas_host }}/api/v2.0/system/advanced/exec"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ truenas_api_token }}"
+        body:
+          command: "umount {{ nfs_mount_point }} && rmdir {{ nfs_mount_point }}"
+        body_format: json
+        status_code: 200,202
+
+    - name: Prüfe, ob Updates verfügbar sind
+      uri:
+        url: "{{ truenas_host }}/api/v2.0/update/check_available"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ truenas_api_token }}"
+        body_format: json
+        return_content: yes
+      register: update_check
+
+    - name: Debug Update Check Result
+      debug:
+        msg: "{{ update_check.json.status }}"
+
+    - name: Führe Update durch, wenn verfügbar
+      when: update_check.json.status == "AVAILABLE"
+      uri:
+        url: "{{ truenas_host }}/api/v2.0/update/update"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ truenas_api_token }}"
+        body_format: json
+        status_code: 200,202
+      register: update_result
+
+    - name: Neustart durchführen (wenn Update erfolgt ist)
+      when: update_check.json.status == "AVAILABLE"
+      uri:
+        url: "{{ truenas_host }}/api/v2.0/system/reboot"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ truenas_api_token }}"
+        status_code: 200,202
+
+    - name: Warte auf Erreichbarkeit nach Reboot
+      when: update_check.json.status == "AVAILABLE"
+      wait_for:
+        host: "{{ truenas_host | urlsplit('hostname') }}"
+        port: 443
+        delay: 20
+        timeout: 300
