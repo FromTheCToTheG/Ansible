@@ -1,0 +1,80 @@
+---
+- name: Update code-server to latest version if newer is available
+  hosts: all
+  become: true
+  vars:
+    code_server_install_path: /usr/lib/code-server
+    github_api_url: https://api.github.com/repos/coder/code-server/releases/latest
+    download_dir: /tmp/code-server
+
+  tasks:
+
+    - name: Ensure download directory exists
+      file:
+        path: "{{ download_dir }}"
+        state: directory
+
+    - name: Get latest release info from GitHub
+      uri:
+        url: "{{ github_api_url }}"
+        return_content: yes
+      register: github_release
+
+    - name: Set latest version fact
+      set_fact:
+        latest_version: "{{ github_release.json.tag_name | regex_replace('^v', '') }}"
+
+    - name: Get installed code-server version
+      command: "{{ code_server_install_path }}/bin/code-server --version"
+      register: installed_version
+      failed_when: false
+      changed_when: false
+
+    - name: Compare versions and decide if update is needed
+      set_fact:
+        update_needed: "{{ latest_version != installed_version.stdout | trim }}"
+
+    - name: Debug version info
+      debug:
+        msg: "Installed: {{ installed_version.stdout | trim }}, Latest: {{ latest_version }}"
+
+    - name: Download code-server archive
+      get_url:
+        url: "https://github.com/coder/code-server/releases/download/v{{ latest_version }}/code-server-{{ latest_version }}-linux-amd64.tar.gz"
+        dest: "{{ download_dir }}/code-server.tar.gz"
+      when: update_needed
+
+    - name: Extract code-server archive
+      unarchive:
+        src: "{{ download_dir }}/code-server.tar.gz"
+        dest: "{{ download_dir }}"
+        remote_src: yes
+      when: update_needed
+
+    - name: Stop code-server service
+      systemd:
+        name: code-server
+        state: stopped
+      when: update_needed
+
+    - name: Copy new version to install path
+      copy:
+        src: "{{ download_dir }}/code-server-{{ latest_version }}-linux-amd64/"
+        dest: "{{ code_server_install_path }}/"
+        owner: root
+        group: root
+        mode: '0755'
+      when: update_needed
+
+    - name: Start code-server service
+      systemd:
+        name: code-server
+        state: started
+        enabled: yes
+      when: update_needed
+
+    - name: Cleanup download dir
+      file:
+        path: "{{ download_dir }}"
+        state: absent
+      when: update_needed
