@@ -21,6 +21,9 @@
       uri:
         url: "{{ adguard_api_url }}"
         method: GET
+        url_username: {{ adguard_admin_user }}
+        url_password: {{ adguard_admin_password }}
+        force_basic_auth: yes
         return_content: yes
       register: adguard_api_version
       failed_when: adguard_api_version.status != 200
