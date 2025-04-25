@@ -7,7 +7,7 @@
     adguard_install_dir: /opt/AdGuardHome
     adguard_download_url: https://static.adguard.com/adguardhome/release/AdGuardHome_linux_amd64.tar.gz
     adguard_service_name: AdGuardHome
-    adguard_api_status_url: http://192.168.178.20/control/status
+    adguard_api_status_url: http://192.168.178.20:80/control/status
 
   tasks:
 
