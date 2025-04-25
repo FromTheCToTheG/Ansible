@@ -6,6 +6,7 @@
     code_server_install_path: /usr/lib/code-server
     github_api_url: https://api.github.com/repos/coder/code-server/releases/latest
     download_dir: /tmp/code-server
+    code_server_service_name: code-server@root
 
   tasks:
 
@@ -32,7 +33,7 @@
 
     - name: Compare versions and decide if update is needed
       set_fact:
-        update_needed: "{{ latest_version != installed_version.stdout | trim }}"
+        update_needed: "{{ latest_version not in installed_version.stdout }}"
 
     - name: Debug version info
       debug:
@@ -53,7 +54,7 @@
 
     - name: Stop code-server service
       systemd:
-        name: code-server@root
+        name: "{{ code_server_service_name }}"
         state: stopped
       when: update_needed
 
@@ -64,11 +65,12 @@
         owner: root
         group: root
         mode: '0755'
+        remote_src: yes
       when: update_needed
 
     - name: Start code-server service
       systemd:
-        name: code-server@root
+        name: "{{ code_server_service_name }}"
         state: started
         enabled: yes
       when: update_needed
