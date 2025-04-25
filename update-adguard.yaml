@@ -1,6 +1,6 @@
 ---
 - name: Update Linux system and AdGuard Home
-  hosts: adguard
+  hosts: Adguard
   become: true
 
   vars:
