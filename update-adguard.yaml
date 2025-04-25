@@ -1,4 +1,99 @@
 ---
+- name: Update Linux system and AdGuard Home via API
+  hosts: Adguard
+  become: true
+
+  vars:
+    adguard_install_dir: /opt/AdGuardHome
+    adguard_download_url: https://static.adguard.com/adguardhome/release/AdGuardHome_linux_amd64.tar.gz
+    adguard_service_name: AdGuardHome
+    adguard_api_url: http://192.168.178.20/control/version
+
+  tasks:
+
+    - name: Update apt cache and upgrade all packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+        autoremove: yes
+
+    - name: Get current AdGuard Home version via HTTP API
+      uri:
+        url: "{{ adguard_api_url }}"
+        method: GET
+        return_content: yes
+      register: adguard_api_version
+      failed_when: adguard_api_version.status != 200
+      changed_when: false
+
+    - name: Set current AdGuard Home version fact
+      set_fact:
+        adguard_current_version: "{{ adguard_api_version.json.version }}"
+
+    - name: Fetch latest AdGuard Home release info from GitHub
+      uri:
+        url: https://api.github.com/repos/AdguardTeam/AdGuardHome/releases/latest
+        return_content: yes
+      register: adguard_latest_release
+
+    - name: Set latest AdGuard Home version fact
+      set_fact:
+        adguard_latest_version: "{{ adguard_latest_release.json.tag_name | regex_replace('^v', '') }}"
+
+    - name: Compare versions and decide if update is needed
+      set_fact:
+        adguard_update_needed: "{{ adguard_current_version != adguard_latest_version }}"
+
+    - name: Download latest AdGuard Home (if needed)
+      get_url:
+        url: "{{ adguard_download_url }}"
+        dest: /tmp/AdGuardHome_latest.tar.gz
+      when: adguard_update_needed
+
+    - name: Extract AdGuard Home archive
+      unarchive:
+        src: /tmp/AdGuardHome_latest.tar.gz
+        dest: /tmp/
+        remote_src: yes
+      when: adguard_update_needed
+
+    - name: Stop AdGuard Home service
+      systemd:
+        name: "{{ adguard_service_name }}"
+        state: stopped
+      when: adguard_update_needed
+
+    - name: Replace AdGuard Home binary
+      copy:
+        src: /tmp/AdGuardHome/AdGuardHome
+        dest: "{{ adguard_install_dir }}/AdGuardHome"
+        mode: '0755'
+        backup: yes
+      when: adguard_update_needed
+
+    - name: Start AdGuard Home service
+      systemd:
+        name: "{{ adguard_service_name }}"
+        state: started
+        enabled: yes
+      when: adguard_update_needed
+
+    - name: Clean up extracted files
+      file:
+        path: /tmp/AdGuardHome
+        state: absent
+      when: adguard_update_needed
+
+    - name: Remove downloaded archive
+      file:
+        path: /tmp/AdGuardHome_latest.tar.gz
+        state: absent
+      when: adguard_update_needed
+
+
+
+
+---
 - name: Update Linux system and AdGuard Home
   hosts: Adguard
   become: true
