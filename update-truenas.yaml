@@ -4,7 +4,7 @@
 
   vars:
     siteip: "192.168.178.230"
-    token: "5-VW2fLpM7Qavdjt4SrS6PCrDkXo0o329BaFcUdKkW6YK0LdqBg6sW63vcC0MaF00V"
+    token: "{{ truenas_token }}"
 
   tasks:
     - name: Check for TrueNAS updates
