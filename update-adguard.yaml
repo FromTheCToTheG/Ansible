@@ -7,7 +7,10 @@
     adguard_install_dir: /opt/AdGuardHome
     adguard_download_url: https://static.adguard.com/adguardhome/release/AdGuardHome_linux_amd64.tar.gz
     adguard_service_name: AdGuardHome
-    adguard_api_status_url: http://192.168.178.20:80/control/status
+    adguard_api_url: http://192.168.178.20:80/control/status
+    # Zugangsdaten aus Variable Group oder inventory
+    # adguard_admin_user: admin
+    # adguard_admin_password: geheim
 
   tasks:
 
@@ -17,15 +20,13 @@
         upgrade: dist
         autoremove: yes
 
-    - name: Get current AdGuard Home version via HTTP API (/control/status)
+    - name: Get current AdGuard Home version via HTTP GET
       uri:
-        url: "{{ adguard_api_status_url }}"
-        method: POST
+        url: "{{ adguard_api_url }}"
+        method: GET
         url_username: "{{ adguard_admin_user }}"
         url_password: "{{ adguard_admin_password }}"
         force_basic_auth: yes
-        body: "{}"
-        body_format: json
         return_content: yes
       register: adguard_api_version
       failed_when: adguard_api_version.status != 200
@@ -33,7 +34,7 @@
 
     - name: Set current AdGuard Home version fact
       set_fact:
-        adguard_current_version: "{{ adguard_api_version.json.version }}"
+        adguard_current_version: "{{ adguard_api_version.json.version | regex_replace('^v', '') }}"
 
     - name: Fetch latest AdGuard Home release info from GitHub
       uri:
