@@ -54,4 +54,4 @@
           title: "Fehler im Deployment"
           message: "Der Task ist fehlgeschlagen: {{ result.stderr }}"
           priority: 5
-      #when: result.rc != 0
+      when: result.rc != 0
