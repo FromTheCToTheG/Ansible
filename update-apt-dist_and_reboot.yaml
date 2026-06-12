@@ -29,8 +29,10 @@
         msg: "Host wird übersprungen (kein apt oder echter Container)"
       when:
         - ansible_facts["pkg_mgr"] != "apt"
-          or ansible_facts["virtualization_type"] in ["lxc", "docker"]
-            and ansible_facts["virtualization_role"] == "guest"
+          or (
+              ansible_facts["virtualization_type"] in ["lxc", "docker"]
+              and ansible_facts["virtualization_role"] == "guest"
+            )
 
     ###########################################################################
     # 3. Hauptblock: apt-Update, Upgrade, Autoremove, Reboot
@@ -79,8 +81,10 @@
 
       when:
         - ansible_facts["pkg_mgr"] == "apt"
-        - ansible_facts["virtualization_type"] not in ["lxc", "docker"]
-        - ansible_facts["virtualization_role"] != "guest"
+        - not (
+            ansible_facts["virtualization_type"] in ["lxc", "docker"]
+            and ansible_facts["virtualization_role"] == "guest"
+          )
 
       rescue:
 
