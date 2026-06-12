@@ -9,6 +9,13 @@
 
   tasks:
 
+    - name: Überspringe Hosts ohne APT oder in LXC-Containern
+      debug:
+        msg: "Host wird übersprungen (kein apt oder LXC-Container)"
+      when:
+        - ansible_pkg_mgr != "apt" or ansible_virtualization_type == "lxc"
+      tags: skipcheck
+
     - name: System aktualisieren inklusive optionalem Reboot
       block:
 
@@ -51,6 +58,10 @@
             timeout: 300
           when: reboot_required_file.stat.exists
 
+      when:
+        - ansible_pkg_mgr == "apt"
+        - ansible_virtualization_type != "lxc"
+
       rescue:
 
         - name: Benachrichtige Gotify bei Fehler
@@ -64,3 +75,4 @@
               title: "Fehler im Deployment"
               message: "Das Playbook ist auf {{ inventory_hostname }} fehlgeschlagen."
               priority: 5
+          ignore_errors: yes
