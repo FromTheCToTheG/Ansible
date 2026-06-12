@@ -13,8 +13,8 @@
       debug:
         msg: "Host wird übersprungen (kein apt oder LXC-Container)"
       when:
-        - ansible_pkg_mgr != "apt" or ansible_virtualization_type == "lxc"
-      tags: skipcheck
+        - ansible_facts["pkg_mgr"] != "apt"
+          or ansible_facts["virtualization_type"] == "lxc"
 
     - name: System aktualisieren inklusive optionalem Reboot
       block:
@@ -59,8 +59,8 @@
           when: reboot_required_file.stat.exists
 
       when:
-        - ansible_pkg_mgr == "apt"
-        - ansible_virtualization_type != "lxc"
+        - ansible_facts["pkg_mgr"] == "apt"
+        - ansible_facts["virtualization_type"] != "lxc"
 
       rescue:
 
