@@ -19,6 +19,16 @@
     - name: System aktualisieren inklusive optionalem Reboot
       block:
 
+        # 🆕 NEUER TASK: Release-Info-Änderungen akzeptieren
+        - name: Release-Info-Änderungen akzeptieren (Debian)
+          command: apt-get update --allow-releaseinfo-change
+          register: releaseinfo
+          changed_when: "'Reading package lists' in releaseinfo.stdout"
+          failed_when: false
+          when:
+            - ansible_facts["pkg_mgr"] == "apt"
+            - ansible_facts["os_family"] == "Debian"
+
         - name: APT Cache aktualisieren
           apt:
             update_cache: yes
