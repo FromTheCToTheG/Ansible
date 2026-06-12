@@ -9,7 +9,9 @@
 
   tasks:
 
-    # 🆕 Release-Info-Fix MUSS vor dem Skip-Check stehen
+    ###########################################################################
+    # 1. Release-Info-Änderungen akzeptieren (Debian Major Upgrade Fix)
+    ###########################################################################
     - name: Release-Info-Änderungen akzeptieren (Debian)
       command: apt-get update --allow-releaseinfo-change
       register: releaseinfo
@@ -19,13 +21,20 @@
         - ansible_facts["pkg_mgr"] == "apt"
         - ansible_facts["os_family"] == "Debian"
 
-    - name: Überspringe Hosts ohne APT oder in LXC-Containern
+    ###########################################################################
+    # 2. Container- und Nicht-APT-Systeme überspringen
+    ###########################################################################
+    - name: Überspringe Hosts ohne APT oder echte Container
       debug:
-        msg: "Host wird übersprungen (kein apt oder LXC-Container)"
+        msg: "Host wird übersprungen (kein apt oder echter Container)"
       when:
         - ansible_facts["pkg_mgr"] != "apt"
-          or ansible_facts["virtualization_type"] == "lxc"
+          or ansible_facts["virtualization_type"] in ["lxc", "docker"]
+            and ansible_facts["virtualization_role"] == "guest"
 
+    ###########################################################################
+    # 3. Hauptblock: apt-Update, Upgrade, Autoremove, Reboot
+    ###########################################################################
     - name: System aktualisieren inklusive optionalem Reboot
       block:
 
@@ -70,7 +79,8 @@
 
       when:
         - ansible_facts["pkg_mgr"] == "apt"
-        - ansible_facts["virtualization_type"] != "lxc"
+        - ansible_facts["virtualization_type"] not in ["lxc", "docker"]
+        - ansible_facts["virtualization_role"] != "guest"
 
       rescue:
 
